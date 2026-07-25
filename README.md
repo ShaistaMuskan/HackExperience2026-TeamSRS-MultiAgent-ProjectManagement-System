@@ -40,8 +40,7 @@ curl -X POST http://localhost:8000/projects/ingest \
 Watch the logs: Atlas selects a methodology, builds a WBS, creates Planner tasks and a Teams channel, then Sentinel automatically starts monitoring the new project.
 
 ## Example Prompt
-Project Name: E-Commerce Website 
-
+Project Name: E-Commerce Website
 Project Description: Project Objective
 
 Develop a responsive e-commerce web application for small businesses.
@@ -77,6 +76,7 @@ PCI-DSS compliant payment gateway is required.
 
 High availability is mandatory.
 
+- **`docs/SRS_AI_PM_MultiAgent.docx`** — full Software Requirements Specification: architecture, agent design, data models, 
 ## Repository layout
 
 ```
