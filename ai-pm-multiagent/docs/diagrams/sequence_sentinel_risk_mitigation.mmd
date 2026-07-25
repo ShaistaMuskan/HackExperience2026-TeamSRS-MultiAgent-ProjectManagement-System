@@ -1,0 +1,37 @@
+sequenceDiagram
+    participant Sentinel
+    participant Repo as Repository
+    participant RiskT as Risk Tools
+    participant Bus as Event Bus
+    participant Orchestrator
+    participant HA as Human Approval Agent
+    participant Teams as Microsoft Teams
+    actor PM as Project Manager
+    participant Planner as Microsoft Planner
+
+    loop every SENTINEL_POLL_INTERVAL_SECONDS
+        Sentinel->>Repo: list_tasks(), list_dependencies(), list_resources()
+        Sentinel->>RiskT: detect_late_tasks()
+        Sentinel->>RiskT: detect_dependency_violations()
+        Sentinel->>RiskT: detect_resource_conflicts()
+        RiskT-->>Sentinel: new Risk objects
+        Sentinel->>RiskT: calculate_project_risk()
+        RiskT-->>Sentinel: ProjectHealth (status, delay probability)
+        alt risk severity is high/critical
+            Sentinel->>RiskT: suggest_mitigation(risk)
+            RiskT-->>Sentinel: mitigation recommendation
+            Sentinel->>Bus: emit(sentinel.risk.detected)
+            Bus->>Orchestrator: sentinel.risk.detected
+            alt severity == critical
+                Orchestrator->>HA: request_approval(ESCALATION)
+                HA->>Teams: send_approval_card()
+                Teams-->>PM: Adaptive Card (Approve / Reject)
+                PM->>HA: decide(approval_id, "approved")
+                HA->>Planner: update_planner_task() / reassign
+                HA->>Bus: emit(approval.decided)
+                Bus->>Orchestrator: approval.decided
+                Orchestrator->>Sentinel: monitor_project() [re-check]
+            end
+        end
+        Sentinel->>Teams: send_teams_message("N new risks, health=X")
+    end

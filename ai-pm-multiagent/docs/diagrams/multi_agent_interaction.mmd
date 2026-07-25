@@ -1,0 +1,30 @@
+graph LR
+    Brief["Project Brief\n(PDF/DOCX/TXT/JSON)"] --> Atlas
+
+    subgraph Agents
+        Atlas["🧭 Atlas\nProject Intelligence"]
+        Sentinel["🛰️ Sentinel\nMonitoring & Risk"]
+        Orchestrator["🧩 Orchestrator\nEvent Routing + State"]
+        HA["✅ Human Approval Agent"]
+    end
+
+    Atlas -- "atlas.plan.created" --> Orchestrator
+    Orchestrator -- "trigger monitor_project()" --> Sentinel
+    Sentinel -- "sentinel.risk.detected (critical)" --> Orchestrator
+    Orchestrator -- "request_approval(ESCALATION)" --> HA
+    HA -- "approval.decided" --> Orchestrator
+    Orchestrator -- "re-run monitor_project()" --> Sentinel
+    Sentinel -- "planner.task.updated" --> Orchestrator
+
+    Atlas -.shared.-> Memory[("Agent Memory\n(per agent, per project)")]
+    Sentinel -.shared.-> Memory
+    HA -.shared.-> Memory
+
+    HA -- "Adaptive Card" --> PM(("Project Manager"))
+    PM -- "Approve / Reject" --> HA
+
+    Atlas ==> Planner[("Microsoft Planner")]
+    Atlas ==> TeamsOut[("Microsoft Teams")]
+    Sentinel ==> TeamsOut
+    HA ==> Planner
+    HA ==> TeamsOut

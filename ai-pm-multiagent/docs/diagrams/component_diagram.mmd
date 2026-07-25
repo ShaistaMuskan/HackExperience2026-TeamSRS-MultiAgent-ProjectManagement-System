@@ -1,0 +1,92 @@
+graph TB
+    subgraph Client["Client Layer"]
+        FE["React + TypeScript Dashboard\n(Tailwind CSS)"]
+    end
+
+    subgraph API["API Layer - FastAPI (Azure App Service)"]
+        Routes["REST API\nprojects / approvals / agents / dashboard"]
+        Auth["Entra ID Auth + RBAC\n(core/security.py)"]
+    end
+
+    subgraph Agents["Multi-Agent Layer"]
+        Atlas["Atlas\nProject Intelligence Agent"]
+        Sentinel["Sentinel\nMonitoring & Risk Agent\n(continuous background loop)"]
+        Orchestrator["Workflow Orchestrator\nEvent routing + state"]
+        HumanApproval["Human Approval Agent"]
+        EventBus[("Event Bus\n(pub/sub)")]
+        Memory[("Agent Memory Store")]
+    end
+
+    subgraph Tools["Tool Layer"]
+        PlannerTools["planner_tools.py"]
+        TeamsTools["teams_tools.py"]
+        SPOutlookTools["sharepoint_outlook_tools.py"]
+        RagTools["rag_tools.py"]
+        PlanningTools["planning_tools.py\n(WBS, dependencies, critical path)"]
+        RiskTools["risk_tools.py"]
+    end
+
+    subgraph Integrations["Integration Adapter Layer"]
+        direction LR
+        Mock["Mock Clients\n(USE_MOCK_INTEGRATIONS=true)"]
+        Real["Azure/Graph Clients\n(USE_MOCK_INTEGRATIONS=false)"]
+    end
+
+    subgraph Azure["Azure AI Foundry + Microsoft 365"]
+        Foundry["Azure AI Foundry\nAgent Service / Azure OpenAI (gpt-4o)"]
+        Search["Azure AI Search\n(RAG Knowledge Base)"]
+        Blob["Azure Blob Storage\n(Project Briefs)"]
+        KV["Azure Key Vault"]
+        Planner["Microsoft Planner"]
+        TeamsM365["Microsoft Teams"]
+        Outlook["Outlook"]
+        SharePoint["SharePoint"]
+    end
+
+    subgraph Data["Persistence"]
+        Repo["In-memory Repository\n(hackathon MVP)"]
+        DB[("PostgreSQL / Cosmos DB\n(production - app/db/models.py)")]
+    end
+
+    FE -->|HTTPS/JSON| Routes
+    Routes --> Auth
+    Routes --> Atlas
+    Routes --> Sentinel
+    Routes --> HumanApproval
+    Routes --> Repo
+
+    Atlas <--> EventBus
+    Sentinel <--> EventBus
+    Orchestrator <--> EventBus
+    HumanApproval <--> EventBus
+    Atlas --> Memory
+    Sentinel --> Memory
+    HumanApproval --> Memory
+
+    Atlas --> PlanningTools
+    Atlas --> PlannerTools
+    Atlas --> TeamsTools
+    Atlas --> SPOutlookTools
+    Atlas --> RagTools
+    Sentinel --> RiskTools
+    Sentinel --> TeamsTools
+    HumanApproval --> PlannerTools
+    HumanApproval --> TeamsTools
+
+    PlannerTools --> Integrations
+    TeamsTools --> Integrations
+    SPOutlookTools --> Integrations
+    RagTools --> Integrations
+    Atlas -.LLM reasoning.-> Integrations
+
+    Mock -.demo/no credentials.-> Integrations
+    Real --> Foundry
+    Real --> Search
+    Real --> Blob
+    Real --> KV
+    Real --> Planner
+    Real --> TeamsM365
+    Real --> Outlook
+    Real --> SharePoint
+
+    Repo -.->|post-hackathon migration| DB

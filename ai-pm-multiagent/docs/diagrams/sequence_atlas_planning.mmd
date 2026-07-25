@@ -1,0 +1,35 @@
+sequenceDiagram
+    actor PM as Project Manager
+    participant API as FastAPI
+    participant Atlas
+    participant RAG as Azure AI Search (RAG)
+    participant LLM as Azure AI Foundry Agent
+    participant Plan as Planning Tools
+    participant Planner as Microsoft Planner
+    participant Teams as Microsoft Teams
+    participant SPO as SharePoint
+    participant Bus as Event Bus
+    participant Orchestrator
+    participant Sentinel
+
+    PM->>API: POST /projects/ingest (brief text)
+    API->>Atlas: run_full_pipeline(brief)
+    activate Atlas
+    Atlas->>RAG: retrieve_rag_documents(brief)
+    RAG-->>Atlas: methodology guides, templates, historical lessons
+    Atlas->>LLM: chat(TASK=methodology_selection)
+    LLM-->>Atlas: methodology + rationale + confidence
+    Atlas->>LLM: chat(TASK=complexity_scoring)
+    LLM-->>Atlas: complexity_score
+    Atlas->>Plan: generate_wbs(), detect_dependencies(),\ncalculate_critical_path(), generate_sprint_plan()
+    Plan-->>Atlas: phases, epics, tasks, milestones, dependencies, sprints
+    Atlas->>SPO: create_project_folder()
+    Atlas->>Teams: create_channel() + send_teams_message()
+    Atlas->>Planner: create_plan() + create_bucket() x N + create_task() x N
+    Planner-->>Atlas: planner task IDs
+    Atlas->>Bus: emit(atlas.plan.created)
+    deactivate Atlas
+    Bus->>Orchestrator: atlas.plan.created
+    Orchestrator->>Sentinel: monitor_project(project_id)
+    Sentinel-->>Orchestrator: initial health snapshot
+    API-->>PM: 200 OK (Project with methodology, phases, tasks)
