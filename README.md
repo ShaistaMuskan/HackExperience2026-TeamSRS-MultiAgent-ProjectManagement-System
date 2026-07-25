@@ -40,7 +40,8 @@ curl -X POST http://localhost:8000/projects/ingest \
 Watch the logs: Atlas selects a methodology, builds a WBS, creates Planner tasks and a Teams channel, then Sentinel automatically starts monitoring the new project.
 
 ## Example Prompt
-Project Name: E-Commerce Website
+Project Name: E-Commerce Website 
+
 Project Description: Project Objective
 
 Develop a responsive e-commerce web application for small businesses.
