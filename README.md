@@ -77,7 +77,6 @@ PCI-DSS compliant payment gateway is required.
 
 High availability is mandatory.
 
-- **`docs/SRS_AI_PM_MultiAgent.docx`** — full Software Requirements Specification: architecture, agent design, data models, 
 ## Repository layout
 
 ```
